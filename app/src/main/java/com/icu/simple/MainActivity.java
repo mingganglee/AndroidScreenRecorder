@@ -7,9 +7,11 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
@@ -99,5 +101,17 @@ public class MainActivity extends AppCompatActivity {
             String savePath = recorder.stopRecord();
             Utils.print(MainActivity.this, savePath);
         }
+    }
+
+    public void Mute(View view) {
+        AudioManager audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
+        audioManager.setMicrophoneMute(true);
+        Utils.print(MainActivity.this, "点击静音按钮" + audioManager.isMicrophoneMute());
+    }
+
+    public void UnMute(View view) {
+        AudioManager audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
+        audioManager.setMicrophoneMute(false);
+        Utils.print(MainActivity.this, "点击取消静音按钮" + audioManager.isMicrophoneMute());
     }
 }

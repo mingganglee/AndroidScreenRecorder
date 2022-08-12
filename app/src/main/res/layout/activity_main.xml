@@ -16,18 +16,32 @@
         android:onClick="StartScreenShot"/>
 
     <Button
-        android:id="@+id/screen_shot"
+        android:id="@+id/start_recorder"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:text="开始录屏"
         android:onClick="StartRecorder"/>
 
     <Button
-        android:id="@+id/screen_shot"
+        android:id="@+id/stop_recorder"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:text="结束录屏"
         android:onClick="StopRecorder"/>
+
+    <Button
+        android:id="@+id/mute"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="静音录屏"
+        android:onClick="Mute"/>
+
+    <Button
+        android:id="@+id/unmute"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="取消静音录屏"
+        android:onClick="UnMute"/>
 
 
 </LinearLayout>
