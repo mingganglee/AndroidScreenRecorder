@@ -1,5 +1,6 @@
 package com.icu.simple;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -11,7 +12,7 @@ import android.media.AudioManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     MediaProjection mediaProjection;
     MediaProjectionManager projectionManager;
+    AudioManager audioManager;
 
     Capture capture = new Capture();
     Recorder recorder = new Recorder();
@@ -46,20 +48,34 @@ public class MainActivity extends AppCompatActivity {
 
 
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
         capture.initParams(MainActivity.this);
         recorder.initParams(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == STORAGE_REQUEST_CODE || requestCode == AUDIO_REQUEST_CODE) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                finish();
+            }
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SCREEN_SHOT) {
-            if (resultCode == RESULT_OK) {
-                mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-                capture.initCapture(mediaProjection);
-                String savePath = capture.capture();
-                Utils.print(MainActivity.this, savePath);
-            }
+            mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+            capture.initCapture(mediaProjection);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    capture.capture();
+                }
+            }, 300);
         } else if (requestCode == SCREEN_RECORDER) {
             mediaProjection = projectionManager.getMediaProjection(resultCode, data);
             recorder.initRecorder(mediaProjection);
@@ -73,13 +89,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_SHOT);
             } else {
                 capture.initCapture(mediaProjection);
-                String savePath = capture.capture();
-                Utils.print(MainActivity.this, savePath);
+
+                capture.capture();
             }
 
         } else {
-            String savePath = capture.capture();
-            Utils.print(MainActivity.this, savePath);
+
+            capture.capture();
         }
     }
 
@@ -99,18 +115,16 @@ public class MainActivity extends AppCompatActivity {
     public void StopRecorder(View view) {
         if (recorder.isRunning()) {
             String savePath = recorder.stopRecord();
-            Utils.print(MainActivity.this, savePath);
+            Utils.scanFile(this, savePath);
         }
     }
 
     public void Mute(View view) {
-        AudioManager audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
         audioManager.setMicrophoneMute(true);
         Utils.print(MainActivity.this, "点击静音按钮" + audioManager.isMicrophoneMute());
     }
 
     public void UnMute(View view) {
-        AudioManager audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
         audioManager.setMicrophoneMute(false);
         Utils.print(MainActivity.this, "点击取消静音按钮" + audioManager.isMicrophoneMute());
     }

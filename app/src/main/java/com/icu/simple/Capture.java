@@ -6,9 +6,9 @@ import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaActionSound;
 import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
-import android.os.SystemClock;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -21,7 +21,7 @@ public class Capture {
     private int dpi;
 
     private MediaProjection mediaProjection;
-    private MediaProjectionManager projectionManager;
+    private MediaActionSound mediaActionSound = new MediaActionSound();
     private ImageReader imageReader;
 
     private Activity activity;
@@ -53,28 +53,44 @@ public class Capture {
     }
 
     public String capture() {
+
         if (mediaProjection == null) {
             return null;
         } else if (imageReader == null) {
             return null;
         } else {
-            SystemClock.sleep(100);
-            Image image = imageReader.acquireNextImage();
-            if (image == null) {
-                Log.e("startCapture", "image is null.");
-                return null;
-            }
-            int width = image.getWidth();
-            int height = image.getHeight();
-            final Image.Plane[] planes = image.getPlanes();
-            final ByteBuffer buffer = planes[0].getBuffer();
-            int pixelStride = planes[0].getPixelStride();
-            int rowStride = planes[0].getRowStride();
-            int rowPadding = rowStride - pixelStride * width;
-            Bitmap bitmap = Bitmap.createBitmap(width + rowPadding / pixelStride, height, Bitmap.Config.ARGB_8888);
-            bitmap.copyPixelsFromBuffer(buffer);
-            image.close();
-            return Utils.savePng(bitmap);
+            Utils.hidePrint(activity);
+            Utils.shotUp();
+
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                    new Handler().postDelayed(new Runnable() {
+                                                  @Override
+                                                  public void run() {
+                                                      Image image = imageReader.acquireNextImage();
+                                                      Utils.shotDown();
+                                                      if (image == null) {
+                                                          Log.e("startCapture", "image is null.");
+                                                          return;
+                                                      }
+                                                      int width = image.getWidth();
+                                                      int height = image.getHeight();
+                                                      final Image.Plane[] planes = image.getPlanes();
+                                                      final ByteBuffer buffer = planes[0].getBuffer();
+                                                      int pixelStride = planes[0].getPixelStride();
+                                                      int rowStride = planes[0].getRowStride();
+                                                      int rowPadding = rowStride - pixelStride * width;
+                                                      Bitmap bitmap = Bitmap.createBitmap(width + rowPadding / pixelStride, height, Bitmap.Config.ARGB_8888);
+                                                      bitmap.copyPixelsFromBuffer(buffer);
+                                                      image.close();
+                                                      mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
+                                                      Utils.savePng(activity, bitmap);
+                                                  }
+                                              },
+                            150);
+                }
+            });
+            return "";
         }
     }
 

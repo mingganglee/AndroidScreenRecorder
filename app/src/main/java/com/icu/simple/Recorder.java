@@ -3,6 +3,7 @@ package com.icu.simple;
 import android.app.Activity;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
+import android.media.MediaActionSound;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.util.DisplayMetrics;
@@ -15,6 +16,8 @@ public class Recorder {
     private MediaProjection mediaProjection;
     private MediaRecorder mediaRecorder;
     private VirtualDisplay virtualDisplay;
+    private MediaActionSound mediaActionSound = new MediaActionSound();
+
 
     private boolean running;
     private int width = 720;
@@ -54,9 +57,9 @@ public class Recorder {
         mediaRecorder.setOutputFile(currentSavePath);
         mediaRecorder.setVideoSize(width, height);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
-        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoFrameRate(60);
         try {
             mediaRecorder.prepare();
             Log.e("mediaRecorder", "success");
@@ -83,6 +86,7 @@ public class Recorder {
         initMediaRecorder();
         mediaRecorder.start();
         running = true;
+        mediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
         return true;
     }
 
@@ -95,7 +99,7 @@ public class Recorder {
         mediaRecorder.reset();
         virtualDisplay.release();
 //    mediaProjection.stop();
-
+        mediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
         return currentSavePath;
     }
 }
